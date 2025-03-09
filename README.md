@@ -34,9 +34,11 @@ pip install -r requirements.txt
 ```
 
 3. 创建`.env`文件并设置OpenAI API密钥：
+默认使用openrouter.ai的api，如果需要使用自己的api，请设置OPENAI_API_BASE为你的api base。
 
 ```
 OPENAI_API_KEY=your_api_key_here
+OPENAI_API_BASE=your_api_base_here
 ```
 
 ## 使用方法
