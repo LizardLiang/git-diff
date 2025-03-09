@@ -128,7 +128,7 @@ def summarize_changes_with_api(diff_content, file_changes):
     
     try:
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            f"{os.environ.get('OPENAI_API_BASE')}/chat/completions",
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
