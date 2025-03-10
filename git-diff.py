@@ -76,21 +76,99 @@ def get_file_changes():
         logger.error(f"获取文件变更状态时出错: {e}")
         return None
 
-def summarize_changes_with_api(diff_content, file_changes):
-    """调用API对变更内容进行总结，生成提交消息"""
-    # 这里替换为实际的API调用
-    # 示例使用OpenAI API，需要设置环境变量OPENAI_API_KEY
+
+def request_open_ai(diff_content, file_changes, model):
     api_key = os.environ.get('OPENAI_API_KEY')
     if not api_key:
-        logger.warning("未设置OPENAI_API_KEY环境变量，无法调用API生成提交消息")
+        logger.warning('未设置OPENAI_API_KEY环境变量，无法调用API生成提交消息')
         return None
-    
+
     # 准备API请求内容
     prompt = f"""
     请根据以下Git变更内容生成一个符合GitHub标准格式的提交消息：
     
     变更差异:
     {diff_content[:5000]}  # 限制长度以避免超出API限制
+    
+    文件变更:
+    新增: {', '.join(file_changes['new_files'][:10])}
+    修改: {', '.join(file_changes['modified_files'][:10])}
+    删除: {', '.join(file_changes['deleted_files'][:10])}
+    
+    请生成一个符合以下格式的提交消息:
+    
+    1. 第一行必须是一个总结性的提交消息，以下列前缀之一开头:
+       - feat: 新功能
+       - fix: 修复bug
+       - docs: 文档变更
+       - style: 代码格式变更，不影响代码功能
+       - refactor: 代码重构，不新增功能或修复bug
+       - perf: 性能优化
+       - test: 测试相关
+       - build: 构建系统或外部依赖变更
+       - ci: CI配置文件和脚本变更
+       - chore: 其他变更
+    
+    2. 第一行格式为: '前缀: 简短描述'，例如:
+       fix: 修正错误响应格式，添加空字符串作为默认数据字段
+    
+    3. 如果有多个变更，请在第一行后空一行，然后使用列表形式列出详细变更:
+       - 第一项变更
+       - 第二项变更
+       - 第三项变更
+    
+    4. 不要使用任何代码块标记（如```或`），不要使用任何特殊格式标记
+    
+    5. 确保第一行是最重要的变更总结，后面的列表是详细说明
+
+    6. 除前缀以外，主要使用此語言 {os.environ.get('LANGUAGE', '中文')} 总结
+    """
+
+    try:
+        response = requests.post(
+            f'{os.environ.get('OPENAI_API_BASE', 'https://api.openai.com/v1')}/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': model if model.startswith('gpt') else 'gpt-4o',
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.7,
+                'max_tokens': 2000,
+            },
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            commit_message = result['choices'][0]['message']['content'].strip()
+
+            # 清理提交消息，移除可能的代码块标记
+            commit_message = re.sub(r'^```.*?\n', '', commit_message)  # 移除开头的```
+            commit_message = re.sub(r'\n```$', '', commit_message)  # 移除结尾的```
+            commit_message = commit_message.replace('`', '')  # 移除所有的`符号
+
+            return commit_message
+        else:
+            logger.error(f"API调用失败: {response.status_code} - {response.text}")
+            return None
+    except Exception as e:
+        logger.error(f"调用API时出错: {e}")
+        return None
+
+
+def request_claude_ai(diff_content, file_changes, model):
+    api_key = os.environ.get('CLAUDE_API_KEY')
+    if not api_key:
+        logger.warning('未设置CLAUDE_API_KEY环境变量，无法调用API生成提交消息')
+        return None
+
+    # 准备API请求内容
+    prompt = f"""
+    请根据以下Git变更内容生成一个符合GitHub标准格式的提交消息：
+    
+    变更差异:
+    {diff_content[:20000]}  # 限制长度以避免超出API限制
     
     文件变更:
     新增: {', '.join(file_changes['new_files'][:10])}
@@ -123,33 +201,36 @@ def summarize_changes_with_api(diff_content, file_changes):
     
     5. 确保第一行是最重要的变更总结，后面的列表是详细说明
 
-    6. 除前缀以外，主要使用中文总结
+    6. 除前缀以外，主要使用此語言 {os.environ.get('LANGUAGE', '中文')} 总结
+
+    7. 只需要回覆與提交訊息相關的內容不需要重複複述任何我的指令，請再三確認回覆符合所有規範，並且保證第一行一定是對於此次修改的簡短描述
     """
-    
+
     try:
         response = requests.post(
-            f"{os.environ.get('OPENAI_API_BASE', 'https://api.openai.com/v1')}/chat/completions",
+            f'{os.environ.get('ANTHROPIC_API_BASE', 'https://api.anthropic.com')}/v1/messages',
             headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json",
             },
             json={
-                "model": "gpt-4o",
+                "model": (model if model.startswith("claude") else "claude-3-7-sonnet-20250219"),
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.7,
-                "max_tokens": 2000
-            }
+                "max_tokens": 2000,
+            },
         )
-        
+
         if response.status_code == 200:
             result = response.json()
-            commit_message = result['choices'][0]['message']['content'].strip()
-            
+            commit_message = result['content'][0]['text'].strip()
+
             # 清理提交消息，移除可能的代码块标记
             commit_message = re.sub(r'^```.*?\n', '', commit_message)  # 移除开头的```
-            commit_message = re.sub(r'\n```$', '', commit_message)     # 移除结尾的```
-            commit_message = commit_message.replace('`', '')           # 移除所有的`符号
-            
+            commit_message = re.sub(r'\n```$', '', commit_message)  # 移除结尾的```
+            commit_message = commit_message.replace('`', '')  # 移除所有的`符号
+
             return commit_message
         else:
             logger.error(f"API调用失败: {response.status_code} - {response.text}")
@@ -158,19 +239,31 @@ def summarize_changes_with_api(diff_content, file_changes):
         logger.error(f"调用API时出错: {e}")
         return None
 
+
+def summarize_changes_with_api(diff_content, file_changes):
+    '''调用API对变更内容进行总结，生成提交消息'''
+    # 这里替换为实际的API调用
+    # 示例使用OpenAI API，需要设置环境变量OPENAI_API_KEY
+    model = os.environ.get('MODEL', 'OPEN_AI')
+    if model == 'OPEN_AI' or model.startswith('gpt'):
+        return request_open_ai(diff_content, file_changes, model)
+    elif model == 'CLAUDE' or model.startswith('claude'):
+        return request_claude_ai(diff_content, file_changes, model)
+    else:
+        logger.error('未知的API模型')
+        return None
+
+
 def format_commit_message(commit_message):
     """格式化提交消息，确保格式正确"""
     # 分割消息行
     lines = commit_message.strip().split('\n')
-    
     # 确保第一行是总结性内容
     if not lines:
         return "chore: 自动生成的提交消息"
-    
     # 检查第一行是否包含前缀
     first_line = lines[0]
     prefixes = ['feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'perf:', 'test:', 'build:', 'ci:', 'chore:']
-    
     has_prefix = any(first_line.startswith(prefix) for prefix in prefixes)
     if not has_prefix:
         # 尝试从消息中推断前缀
@@ -184,15 +277,15 @@ def format_commit_message(commit_message):
             first_line = f"refactor: {first_line}"
         else:
             first_line = f"chore: {first_line}"
-    
+
     # 重新组合消息
     formatted_lines = [first_line]
-    
+
     # 如果有多行，确保第一行和后面的内容之间有空行
     if len(lines) > 1:
         if lines[1].strip():  # 如果第二行不是空行
             formatted_lines.append('')  # 添加空行
-        
+
         # 添加剩余的行
         for line in lines[1:]:
             if line.strip():  # 跳过空行
@@ -201,7 +294,7 @@ def format_commit_message(commit_message):
                     formatted_lines.append(f"- {line.strip()}")
                 else:
                     formatted_lines.append(line)
-    
+
     return '\n'.join(formatted_lines)
 
 def escape_commit_message(message):
@@ -260,9 +353,10 @@ def main():
     # 解析命令行参数
     auto_commit = '--auto-commit' in sys.argv
     confirm_commit = '--confirm' in sys.argv
+    no_add_commit = '--no-add' in sys.argv
     
     # 首先执行git add .命令
-    if not add_all_changes():
+    if not no_add_commit and not add_all_changes():
         logger.warning("无法添加所有更改，继续执行脚本...")
     
     # 确定要分析的是暂存区还是最近一次提交
