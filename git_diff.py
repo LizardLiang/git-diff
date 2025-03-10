@@ -99,43 +99,43 @@ def request_open_ai(diff_content, file_changes, model):
 
     # 准备API请求内容
     prompt = f"""
-    请根据以下Git变更内容生成一个符合GitHub标准格式的提交消息：
-    
-    变更差异:
-    {diff_content[:5000]}  # 限制长度以避免超出API限制
-    
-    文件变更:
-    新增: {', '.join(file_changes['new_files'][:10])}
-    修改: {', '.join(file_changes['modified_files'][:10])}
-    删除: {', '.join(file_changes['deleted_files'][:10])}
-    
-    请生成一个符合以下格式的提交消息:
-    
-    1. 第一行必须是一个总结性的提交消息，以下列前缀之一开头:
-       - feat: 新功能
-       - fix: 修复bug
-       - docs: 文档变更
-       - style: 代码格式变更，不影响代码功能
-       - refactor: 代码重构，不新增功能或修复bug
-       - perf: 性能优化
-       - test: 测试相关
-       - build: 构建系统或外部依赖变更
-       - ci: CI配置文件和脚本变更
-       - chore: 其他变更
-    
-    2. 第一行格式为: '前缀: 简短描述'，例如:
-       fix: 修正错误响应格式，添加空字符串作为默认数据字段
-    
-    3. 如果有多个变更，请在第一行后空一行，然后使用列表形式列出详细变更:
-       - 第一项变更
-       - 第二项变更
-       - 第三项变更
-    
-    4. 不要使用任何代码块标记（如```或`），不要使用任何特殊格式标记
-    
-    5. 确保第一行是最重要的变更总结，后面的列表是详细说明
+    Please generate a GitHub standard format commit message based on the following Git changes:
 
-    6. 除前缀以外，主要使用此語言 {os.environ.get('LANGUAGE', '中文')} 总结
+    Changes diff:
+    {diff_content[:20000]}  # Length limited to avoid API limits
+
+    File changes:
+    Added: {', '.join(file_changes['new_files'][:10])}
+    Modified: {', '.join(file_changes['modified_files'][:10])}
+    Deleted: {', '.join(file_changes['deleted_files'][:10])}
+
+    Please generate a commit message that follows these formatting rules:
+
+    1. The first line must be a summary commit message, starting with one of these prefixes:
+    - feat: New feature
+    - fix: Bug fix
+    - docs: Documentation changes
+    - style: Code style changes that don't affect functionality
+    - refactor: Code refactoring without adding features or fixing bugs
+    - perf: Performance optimization
+    - test: Testing related
+    - build: Build system or external dependency changes
+    - ci: CI configuration file and script changes
+    - chore: Other changes
+
+    2. First line format should be: "prefix: brief description", for example:
+    fix: Correct error response format, add empty string as default data field
+
+    3. If there are multiple changes, leave a blank line after the first line, then list detailed changes in list format:
+    - First change
+    - Second change
+    - Third change
+
+    4. Do not use any code block markers (like ``` or `), do not use any special formatting markers
+
+    5. Ensure the first line is the most important change summary, and the list below is detailed explanation
+
+    6. Except for the prefix, mainly use this language {os.environ.get('LANGUAGE', 'English')} for the summary
     """
 
     try:
@@ -179,45 +179,46 @@ def request_claude_ai(diff_content, file_changes, model):
 
     # 准备API请求内容
     prompt = f"""
-    请根据以下Git变更内容生成一个符合GitHub标准格式的提交消息：
-    
-    变更差异:
-    {diff_content[:20000]}  # 限制长度以避免超出API限制
-    
-    文件变更:
-    新增: {', '.join(file_changes['new_files'][:10])}
-    修改: {', '.join(file_changes['modified_files'][:10])}
-    删除: {', '.join(file_changes['deleted_files'][:10])}
-    
-    请生成一个符合以下格式的提交消息:
-    
-    1. 第一行必须是一个总结性的提交消息，以下列前缀之一开头:
-       - feat: 新功能
-       - fix: 修复bug
-       - docs: 文档变更
-       - style: 代码格式变更，不影响代码功能
-       - refactor: 代码重构，不新增功能或修复bug
-       - perf: 性能优化
-       - test: 测试相关
-       - build: 构建系统或外部依赖变更
-       - ci: CI配置文件和脚本变更
-       - chore: 其他变更
-    
-    2. 第一行格式为: "前缀: 简短描述"，例如:
-       fix: 修正错误响应格式，添加空字符串作为默认数据字段
-    
-    3. 如果有多个变更，请在第一行后空一行，然后使用列表形式列出详细变更:
-       - 第一项变更
-       - 第二项变更
-       - 第三项变更
-    
-    4. 不要使用任何代码块标记（如```或`），不要使用任何特殊格式标记
-    
-    5. 确保第一行是最重要的变更总结，后面的列表是详细说明
+    Please generate a GitHub standard format commit message based on the following Git changes:
 
-    6. 除前缀以外，主要使用此語言 {os.environ.get('LANGUAGE', '中文')} 总结
+    Changes diff:
+    {diff_content[:20000]}  # Length limited to avoid API limits
 
-    7. 只需要回覆與提交訊息相關的內容不需要重複複述任何我的指令，請再三確認回覆符合所有規範，並且保證第一行一定是對於此次修改的簡短描述
+    File changes:
+    Added: {', '.join(file_changes['new_files'][:10])}
+    Modified: {', '.join(file_changes['modified_files'][:10])}
+    Deleted: {', '.join(file_changes['deleted_files'][:10])}
+
+    Please generate a commit message that follows these formatting rules:
+
+    1. The first line must be a summary commit message, starting with one of these prefixes:
+    - feat: New feature
+    - fix: Bug fix
+    - docs: Documentation changes
+    - style: Code style changes that don't affect functionality
+    - refactor: Code refactoring without adding features or fixing bugs
+    - perf: Performance optimization
+    - test: Testing related
+    - build: Build system or external dependency changes
+    - ci: CI configuration file and script changes
+    - chore: Other changes
+
+    2. First line format should be: "prefix: brief description", for example:
+    fix: Correct error response format, add empty string as default data field
+
+    3. If there are multiple changes, leave a blank line after the first line, then list detailed changes in list format:
+    - First change
+    - Second change
+    - Third change
+
+    4. Do not use any code block markers (like ``` or `), do not use any special formatting markers
+
+    5. Ensure the first line is the most important change summary, and the list below is detailed explanation
+
+    6. Except for the prefix, mainly use this language {os.environ.get('LANGUAGE', 'English')} for the summary
+
+    7. Only reply with content related to the commit message, no need to repeat any of my instructions, please triple-check that your reply meets all standards, and ensure the first line is definitely a brief description of this change
+
     """
 
     try:
@@ -514,4 +515,3 @@ if __name__ == "__main__":
     # 2. 确认后提交：python git-diff.py --confirm
     # 3, 自动提交：python git-diff.py --auto-commit
     main()
-
