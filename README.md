@@ -41,6 +41,8 @@ OPENAI_API_KEY=your_api_key_here
 OPENAI_API_BASE=your_api_base_here
 ```
 
+  - 若要使用 Claude AI API，請設定 MODEL = "CLAUDE" 或是任何 Claude 提供的模型，並且設置 CLAUDE_API_KEY
+
 ## 使用方法
 
 ### 基本用法
@@ -50,6 +52,11 @@ python git-diff.py
 ```
 
 这将分析暂存区的变更，并生成提交消息建议，但不会自动提交。
+
+### 不自動添加所有變更到暫存區
+```bash
+python git-diff.py --no-add
+```
 
 ### 分析最近一次提交
 
