@@ -72,8 +72,8 @@ def get_file_changes(staged_only):
         deleted_files = []
 
         for line in status_output:
-            if not staged_only and (
-                line.startswith("A ") or line.startswith("?? ")
+            if (staged_only and line.startswith("A ")) or (
+                not staged_only and line.startswith(("?? ", "A "))
             ):  # 新增的文件
                 new_files.append(line[3:])
             elif line.startswith("M "):  # 修改的文件
