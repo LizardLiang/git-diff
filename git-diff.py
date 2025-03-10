@@ -126,7 +126,7 @@ def request_open_ai(diff_content, file_changes, model):
 
     try:
         response = requests.post(
-            f'{os.environ.get('OPENAI_API_BASE', 'https://api.openai.com/v1')}/chat/completions',
+            f"{os.environ.get('OPENAI_API_BASE', 'https://api.openai.com/v1')}/chat/completions",
             headers={
                 'Authorization': f'Bearer {api_key}',
                 'Content-Type': 'application/json',
@@ -208,7 +208,7 @@ def request_claude_ai(diff_content, file_changes, model):
 
     try:
         response = requests.post(
-            f'{os.environ.get('ANTHROPIC_API_BASE', 'https://api.anthropic.com')}/v1/messages',
+            f"{os.environ.get('ANTHROPIC_API_BASE', 'https://api.anthropic.com')}/v1/messages",
             headers={
                 "x-api-key": api_key,
                 "anthropic-version": "2023-06-01",
