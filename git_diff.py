@@ -62,9 +62,6 @@ def add_all_changes():
 def get_file_changes(staged_only):
     """获取文件变更状态"""
     try:
-        commands = ["git", "status", "--porcelain"]
-        if staged_only:
-            commands += ["|", "grep", '"^[AMD]"']
         status_output = subprocess.check_output(
             ["git", "status", "--porcelain"], encoding="utf-8"
         ).splitlines()
@@ -75,7 +72,9 @@ def get_file_changes(staged_only):
         deleted_files = []
 
         for line in status_output:
-            if line.startswith("A ") or line.startswith("?? "):  # 新增的文件
+            if not staged_only and (
+                line.startswith("A ") or line.startswith("?? ")
+            ):  # 新增的文件
                 new_files.append(line[3:])
             elif line.startswith("M "):  # 修改的文件
                 modified_files.append(line[3:])
