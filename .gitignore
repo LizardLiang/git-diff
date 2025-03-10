@@ -1,2 +1,6 @@
+.gitignore
 *.env.local
 *.env
+*.egg-info
+uv*
+.python-version
