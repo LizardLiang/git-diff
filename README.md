@@ -107,6 +107,7 @@ python git-diff.py --no-add
 ```
 
 支持的类型前缀包括：
+
 - `feat`: 新功能
 - `fix`: 修复bug
 - `docs`: 文档变更
@@ -126,6 +127,13 @@ python git-diff.py --no-add
 - 可以通过环境变量`MODEL`选择使用的AI模型
 - 可以通过环境变量`LANGUAGE`设置生成提交消息的语言
 
+## uv 打包
+
+- 使用 `uv build`，将 `git-diff.py` 打包成可执行文件
+- 使用 `uv tool install`，将打包好的可执行文件安装到系统中
+- 使用 `uv run git-diff [options]`，运行打包好的可执行文件
+
 ## 许可证
 
-[MIT](LICENSE) 
+[MIT](LICENSE)
+

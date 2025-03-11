@@ -1,0 +1,10 @@
+[project]
+name = "git-diff"
+version = "0.1.0"
+description = "Git提交助手"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+git-diff = "git_diff:main"

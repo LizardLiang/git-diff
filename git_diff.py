@@ -2,15 +2,12 @@
 import subprocess
 import sys
 import os
-import json
 import requests
 from loguru import logger
 import dotenv
-import shlex
-import locale
 import re
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(os.path.join(os.getcwd(), ".env"))
 
 # 设置环境变量，确保Git输出使用UTF-8编码
 os.environ['PYTHONIOENCODING'] = 'utf-8'
