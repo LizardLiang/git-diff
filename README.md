@@ -52,6 +52,8 @@ MODEL=OPEN_AI  # 或 MODEL=CLAUDE，或直接指定模型名称如 gpt-4-turbo �
 LANGUAGE=中文
 ```
 
+  - 若要使用 Claude AI API，請設定 MODEL = "CLAUDE" 或是任何 Claude 提供的模型，並且設置 CLAUDE_API_KEY
+
 ## 使用方法
 
 ### 基本用法
@@ -61,6 +63,11 @@ python git-diff.py
 ```
 
 这将分析暂存区的变更，并生成提交消息建议，但不会自动提交。
+
+### 不自動添加所有變更到暫存區
+```bash
+python git-diff.py --no-add
+```
 
 ### 分析最近一次提交
 
@@ -107,6 +114,7 @@ python git-diff.py --no-add
 ```
 
 支持的类型前缀包括：
+
 - `feat`: 新功能
 - `fix`: 修复bug
 - `docs`: 文档变更
@@ -125,6 +133,12 @@ python git-diff.py --no-add
 - 在Windows系统上，确保设置了正确的编码以支持中文输出
 - 可以通过环境变量`MODEL`选择使用的AI模型
 - 可以通过环境变量`LANGUAGE`设置生成提交消息的语言
+
+## uv 打包
+
+- 使用 `uv build`，将 `git-diff.py` 打包成可执行文件
+- 使用 `uv tool install`，将打包好的可执行文件安装到系统中
+- 使用 `uv run git-diff [options]`，运行打包好的可执行文件
 
 ## 许可证
 

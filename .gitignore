@@ -1,2 +1,7 @@
+.gitignore
 *.env.local
 *.env
+
+# ignore uv
+*.egg-info/
+*.lock
