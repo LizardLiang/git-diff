@@ -4,3 +4,4 @@
 # ignore uv
 *.egg-info/
 *.lock
+build/git_diff
