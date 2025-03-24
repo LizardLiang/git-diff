@@ -90,7 +90,8 @@ def create_prompt(diff_content, file_changes):
     return f"""
     请根据以下Git变更内容生成一个符合GitHub标准格式的提交消息：
     
-    变更差异:
+    變更的差異將會使用分隔線進行區隔:
+    ----我是分隔線-----
     {diff_content[:20000]}  # 限制长度以避免超出API限制
     
     文件变更:
@@ -98,19 +99,20 @@ def create_prompt(diff_content, file_changes):
     修改: {', '.join(file_changes['modified_files'][:10])}
     删除: {', '.join(file_changes['deleted_files'][:10])}
     
-    请生成一个符合以下格式的提交消息:
+    ----我是分隔線-----
+    以下開始是指令，请生成一个符合以下格式的提交消息:
     
     1. 第一行必须是一个总结性的提交消息，以下列前缀之一开头:
-       - feat: 新功能
-       - fix: 修复bug
-       - docs: 文档变更
-       - style: 代码格式变更，不影响代码功能
-       - refactor: 代码重构，不新增功能或修复bug
-       - perf: 性能优化
-       - test: 测试相关
-       - build: 构建系统或外部依赖变更
-       - ci: CI配置文件和脚本变更
-       - chore: 其他变更
+        - feat: 新功能
+        - fix: 修复bug
+        - docs: 文档变更
+        - style: 代码格式变更，不影响代码功能
+        - refactor: 代码重构，不新增功能或修复bug
+        - perf: 性能优化
+        - test: 测试相关
+        - build: 构建系统或外部依赖变更
+        - ci: CI配置文件和脚本变更
+        - chore: 其他变更
     
     2. 第一行格式为: "前缀: 简短描述"，例如:
        fix: 修正错误响应格式，添加空字符串作为默认数据字段
@@ -127,6 +129,8 @@ def create_prompt(diff_content, file_changes):
     6. 除前缀以外，主要使用此語言 {os.environ.get('LANGUAGE', '中文')} 总结
 
     7. 只需要回覆與提交訊息相關的內容不需要重複複述任何我的指令，請再三確認回覆符合所有規範，並且保證第一行一定是對於此次修改的簡短描述
+
+    8. 回覆的內容請以 markdown 的形式產生，並且將回覆使用 code block 包裹起來，請勿使用其他格式
     """
 
 
@@ -388,6 +392,7 @@ def escape_commit_message(message):
 
 def commit_changes(commit_message):
     """使用给定的提交消息提交更改"""
+    temp_file = None
     try:
         # 创建临时文件存储提交消息
         temp_file = os.path.join(os.getcwd(), "temp_commit_msg.txt")
@@ -419,13 +424,13 @@ def commit_changes(commit_message):
     except subprocess.CalledProcessError as e:
         logger.error(f"提交失败: {e.stderr}")
         # 尝试删除临时文件
-        if os.path.exists(temp_file):
+        if temp_file is not None and os.path.exists(temp_file):
             os.remove(temp_file)
         return False, e.stderr
     except Exception as e:
         logger.error(f"提交过程中出错: {e}")
         # 尝试删除临时文件
-        if os.path.exists(temp_file):
+        if temp_file is not None and os.path.exists(temp_file):
             os.remove(temp_file)
         return False, str(e)
 
